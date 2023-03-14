@@ -12,6 +12,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 public class FrontServlet extends HttpServlet {
+
+    HashMap<String, Mapping> mappingUrls;
     
     protected void processRequest(HttpServletRequest req,
     HttpServletResponse res) throws IOException, ServletException{
