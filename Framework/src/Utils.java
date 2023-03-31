@@ -1,16 +1,38 @@
 package etu1830.utils;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Vector;
 import etu1830.annotation.Urls;
 import etu1830.framework.Mapping;
+import etu1830.framework.ModelView;
 
 
 public class Utils {
-    static String context = "framework";
-
+    
+    // recuperation d'une instance de methode
+    // et son objet appelant
+    public static ModelView getModelView(Mapping map) throws Exception{
+        try{
+            Class classe = Class.forName(map.getClassName());
+            Method[] methods = classe.getDeclaredMethods();
+            Method methode = null;
+            for(Method courant: methods){
+                if (courant.getName().equals(map.getMethod())) methode = courant;
+            }
+            Object instance  = classe.cast(classe.newInstance());        
+            String redirUrl = (String)methode.invoke(instance);
+            return new ModelView(redirUrl);
+        }
+        catch(Exception e){
+            throw e;
+        }
+        
+    }
+    
+                
     // recuperation de toutes les methodes annotees URls
     public static HashMap<String, Mapping> getUrlsAnnotedMethods(Vector<Class<?>> classes){
         java.lang.reflect.Method[] methods;
@@ -91,15 +113,15 @@ public class Utils {
         return classes;
     }
 
-
-
-    public static String getPathFromURL(String url){
-        String context = Utils.context;
+    public static String getPathFromURL(String url, String context){
         String res;
         String[] spliting = url.split(context+"/"); //le but est de recuperer la partie qui vient apres le contexte
+        for (Object o: spliting){
+            System.out.println("Spliting: "+o.toString());
+        }
+        
         if (spliting.length < 2) res = "";    // cas ou on uniquement le contexte dans l'URL
         else res = spliting[1];
-        return res;       
-        
+        return res;   
     }
 }

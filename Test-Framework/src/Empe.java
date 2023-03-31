@@ -2,9 +2,9 @@ package model2;
 
 import etu1830.annotation.Urls;
 
-public class Emp {
+public class Empe {
     @Urls(url = "emp-myMethod")
-    public void maMethode(){
-
+    public String maMethode(){
+        return "emp-list.jsp";
     }
 }
