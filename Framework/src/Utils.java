@@ -15,16 +15,25 @@ public class Utils {
     // recuperation d'une instance de methode
     // et son objet appelant
     public static ModelView getModelView(Mapping map) throws Exception{
+        Object mv;
         try{
             Class classe = Class.forName(map.getClassName());
             Method[] methods = classe.getDeclaredMethods();
             Method methode = null;
             for(Method courant: methods){
+                //recuperation de la methode 
                 if (courant.getName().equals(map.getMethod())) methode = courant;
             }
-            Object instance  = classe.cast(classe.newInstance());        
-            String redirUrl = (String)methode.invoke(instance);
-            return new ModelView(redirUrl);
+            // instanciation de l'objet appelant
+            Object instance  = classe.cast(classe.newInstance());
+            
+            // invocation de la methode
+            mv = methode.invoke(instance);
+            if(mv instanceof ModelView == false){
+                throw new Exception("La methode " + map.getMethod()+" de la classe "+map.getClass()+" ne conduit pas a une vue...");
+            }
+
+            return (ModelView)mv;
         }
         catch(Exception e){
             throw e;

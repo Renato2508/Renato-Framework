@@ -44,26 +44,25 @@ public class FrontServlet extends HttpServlet {
             out.println("URL: "+ url);
             out.println("slug: "+slug);
 
+            //liste des annotations disponibles, classes et methodes correspondantes 
             for(Map.Entry<String, Mapping> entry : this.mappingUrls.entrySet()){
                 out.println("Annotation: "+ entry.getKey()+"\tMethode : "+entry.getValue().getMethod()+"\tClasse: "+entry.getValue().getClassName());
             }
 
-            
+            // recuperation du mapping correspondant a l'URL donnee
+            // pour avoir le nom de classe et de methode a invoquer            
             Mapping map = this.mappingUrls.get(slug);
             if(map == null) out.println("Annotation inconnue");
             else{
                 ModelView mv = Utils.getModelView(map);
-                System.out.println("VUE:" + mv.getView());
+                for(Map.Entry<String, Object> entree : mv.getData().entrySet()){
+                    req.setAttribute(entree.getKey(), entree.getValue());
+                }
+
                 RequestDispatcher dispat = req.getRequestDispatcher(mv.getView());
             dispat.forward(req,res);  
 
-            }
-                
-
-
-
-        
-            
+            }    
         }catch( Exception e ){
             e.printStackTrace();
         }
