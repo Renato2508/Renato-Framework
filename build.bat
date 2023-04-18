@@ -1,3 +1,4 @@
+cls
 @echo off
 REM compilation de FW
 cd Framework\build
@@ -17,8 +18,9 @@ copy fw.jar Test-Framework\WEB-INF\lib
 
 REM compilation du projet de test
 cd Test-Framework\WEB-INF\classes
-set CLASSPATH=%CLASSPATH%;E:\S4\
-\M_Naina\Framework_2m_fetch\Renato-Framework\fw.jar
+set CLASSPATH=%CLASSPATH%;E:\S4\projets\M_Naina\Framework_2m_fetch\Renato-Framework\fw.jar
+echo "AFFICHAGE DE CLASSPATH: "
+echo %CLASSPATH%
 javac -d . ../../src/*.java
 
 Rem vers Test-Framework
