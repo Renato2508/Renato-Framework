@@ -44,6 +44,7 @@ public class FrontServlet extends HttpServlet {
         try{
             PrintWriter out = res.getWriter();
             out.println("BIENVENUE");
+            // recupeartion de l'URL de la requete
             String url = req.getRequestURL().toString();
 
             // recuperation de l'attr URL de l'annotation Urls
@@ -52,9 +53,9 @@ public class FrontServlet extends HttpServlet {
             //out.println("slug: "+slug);
 
             //liste des annotations disponibles, classes et methodes correspondantes 
-            for(Map.Entry<String, Mapping> entry : this.mappingUrls.entrySet()){
-                out.println("Annotation: "+ entry.getKey()+"\tMethode : "+entry.getValue().getMethod()+"\tClasse: "+entry.getValue().getClassName());
-            }
+            //for(Map.Entry<String, Mapping> entry : this.mappingUrls.entrySet()){
+                //out.println("Annotation: "+ entry.getKey()+"\tMethode : "+entry.getValue().getMethod()+"\tClasse: "+entry.getValue().getClassName());
+            //}
 
             // recuperation du mapping correspondant a l'URL donnee
             // pour avoir le nom de classe et de methode a invoquer
@@ -64,7 +65,7 @@ public class FrontServlet extends HttpServlet {
             if(map == null) out.println("URL non atteignable car Annotation inconnue");
             else{
                 Object instance = FrontServlet.getInstance(map);
-                Class classe = instance.getClass();
+                Class<?> classe = instance.getClass();
                 Method[] methods = classe.getDeclaredMethods();
         
                 // donner aux attributs de l'instance leur valeurs
@@ -74,13 +75,21 @@ public class FrontServlet extends HttpServlet {
                 // de la methode du mapping
                 // si elle est existante
                 Method methode = null;
-                for(Method courant: methods){
-                    if (courant.getName().equals(map.getMethod())) methode = courant;
+                try {
+                    // cas d'une methode sans arguments
+                    methode = classe.getMethod(map.getMethod());
+                    
+                } catch (Exception e1) {
+                    // cas des methodes demandant certains arguments
+                    for(Method courant: methods){
+                        if (courant.getName().equals(map.getMethod())) methode = courant;
+                    }
                 }
                 
-                Object result = methode.invoke(classe.cast(instance));  
                 
-                // Cas de passage de donnees vers une vue
+                Object result = FrontServlet.invoke(classe.cast(instance), req, methode);  
+                
+                // Passage de donnees vers une vue
                 if(result instanceof ModelView == true){
                     ModelView mv =  (ModelView)result;
 
@@ -100,7 +109,85 @@ public class FrontServlet extends HttpServlet {
         
     }
 
-    public static void setAttributes(Object instance, HttpServletRequest req, Class classe, Method[] methods){
+
+    // invocation d'Une methode d'un modele donne dont on connait le nomm l'instance appelante et la liste des arguments
+    public static Object invoke(Object instance, HttpServletRequest req, Method methode) throws Exception{
+
+        // liste de tous les noms de parametres de la requete
+        Enumeration<String> parameterNames = req.getParameterNames();
+
+        // liste des arguments de la fonction
+        Parameter[] argForms = methode.getParameters();
+
+        // liste de tous les arguments
+        Object[] args = new  Object[argForms.length];
+        
+        //Valeur de l'argument courant
+        String argVal;
+        Object argValCast; 
+        Parameter arg;
+
+        for(int i = 0; i < args.length; i++){
+            arg = argForms[i];
+            System.out.println("NOMS D'args: "+ arg.getName()+ "\n" + "TYPE: " + arg.getType().getName());
+            argVal = req.getParameterValues(arg.getName())[0];
+            argValCast = FrontServlet.cast(argVal, arg.getType());
+            try{
+                System.out.println("VALEUR D'args: "+ argValCast+ "\n" + "TYPE PRESENT: " + argValCast.getClass().getName());
+            }
+            catch(Exception e){}
+
+            args[i] = argValCast;
+        }
+
+        //invocation de la methode avec tous les arguments
+        return methode.invoke(instance, args);
+
+    }
+
+    public static Object cast(String value, Class<?> type){
+
+            // caster l'argument vers le type attendu
+            try{
+                // pour les types ayant la methode valueOf(String s)
+                return type.getDeclaredMethod("valueOf", String.class).invoke(null, value); 
+            } 
+            catch(Exception e){}
+                // arguments de types primitifs
+
+            try {
+                String nomDeType = type.getSimpleName();
+                //int 
+                if(nomDeType.compareToIgnoreCase("int") == 0){
+                    return Integer.parseInt(value); 
+                }
+
+                // double
+                else if(nomDeType.compareToIgnoreCase("double") == 0){
+                    return Double.parseDouble(value); 
+
+                }
+
+                else if(nomDeType.compareToIgnoreCase("float") == 0){
+                    return Float.parseFloat(value); 
+                }
+
+                // boolean
+
+                else if(nomDeType.compareToIgnoreCase("boolean") == 0){
+                    return Boolean.parseBoolean(nomDeType);
+                }
+            } 
+            catch (Exception e2) {}
+            
+            //String
+            return value;
+    }
+
+            
+
+    // donner des valeurs aux attributs 
+    public static void setAttributes(Object instance, HttpServletRequest req, Class<?> classe, Method[] methods) throws Exception{
         // nom du parametre courant
         String paramName;
         // valeurs possibles du parametre
@@ -122,20 +209,13 @@ public class FrontServlet extends HttpServlet {
                         // caster l'argument vers le type 
                         // attendu par le setter
                         Class<?> [] types = courant.getParameterTypes(); 
-                        try{
-                            // pour les types autres que String
-                            courant.invoke(classe.cast(instance), types[0].getDeclaredMethod("valueOf", String.class).invoke(null, paramValues[0])); 
-                        } 
-                        catch(Exception e){
-                            //e.printStackTrace();
-                            courant.invoke(classe.cast(instance), paramValues[0]); 
-                        }                     
+                        courant.invoke(classe.cast(instance), FrontServlet.cast(paramValues[0], types[0]));
                     }
-                    catch(Exception e){
-                        e.printStackTrace();
+                    catch (Exception e){
+                        throw e;
                     }
                 }
-            }
+            }           
         }
         
     }

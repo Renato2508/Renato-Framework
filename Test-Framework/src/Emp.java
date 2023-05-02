@@ -9,6 +9,15 @@ import java.util.Vector;
 public class Emp {
     String nom;
     Integer age;
+    float note;
+    public float getNote() {
+        return note;
+    }
+
+    public void setNote(float note) {
+        this.note = note;
+    }
+
     Date embauche;
 
     // _ _ _ Constructors _ _ _
@@ -19,8 +28,27 @@ public class Emp {
     }
     
     // _ _ _ Methods _ _ _
+    @Urls(url = "voidArgs")
+    public ModelView embaucher(){
+        ModelView mv = new ModelView();
+        
+        // vue destinatrice
+        mv.setView("emp-list.jsp");
 
-    public void embaucher(){}
+        //elements de donnees a passer a la vue
+        Vector<Emp> liste = new Vector<Emp>();
+        Emp e = new Emp();
+            
+            
+        e.setNom("MEHTODE SANS ARGUMENTS INVOQUEE");        
+        liste.add(e);
+        
+
+        // ajout de la liste aux donnees a passer
+        mv.addItem("liste", liste);
+
+        return mv;
+    }
 
     @Urls(url = "getAllEmp")
     public ModelView getAll(){
@@ -49,12 +77,17 @@ public class Emp {
     }
 
     @Urls(url = "showOneEmp")
-    public ModelView listeEmpSaisi(){
+    public ModelView listeEmpSaisi(String nom, int age, Date embauche, float note){
         ModelView mv = new ModelView();
         Vector<Emp> liste = new Vector<Emp>();
         liste.add(this);
         mv.addItem("liste", liste);
-    
+        
+        this.setAge(age);
+        this.setNom(nom);
+        this.setEmbauche(embauche);
+        this.setNote(note);
+        
         System.out.println("Nom:\t"+ this.getNom());
         System.out.println("Age:\t"+ this.getAge());
         System.out.println("Date embauche: "+ this.getEmbauche().toString());

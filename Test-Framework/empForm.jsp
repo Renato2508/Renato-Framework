@@ -11,6 +11,7 @@
         <p>Nom: <input type="text" name="nom"></p>
         <p>Age: <input type="text" name="age"></p>
         <p> Date embauche: <input type="date" name ="embauche"></p>
+        <p> Note: <input type="text" name ="note"></p>
         <input type="submit" value="Valider">
     </form>
 </body>

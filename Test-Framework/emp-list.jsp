@@ -4,8 +4,23 @@
     Vector<Emp> liste = (Vector<Emp>)request.getAttribute("liste");
     out.println("Vous avez effectue la saisie suivante:");
     for(Emp emp : liste){
-        out.println("EMPLOYE: " + emp.getNom());
-        out.println("AGE : " + emp.getAge());
-        out.println("Date embauche: "+ emp.getEmbauche().toString());
+        try{
+            out.println("EMPLOYE: " + emp.getNom());
+        }catch(Exception e1){}
+
+        try{
+            out.println("AGE : " + emp.getAge());
+        }catch(Exception e2){}
+
+        try{
+            out.println("Date embauche: "+ emp.getEmbauche().toString());
+        }catch(Exception e2){}
+
+        try{
+            out.println("Note: "+ emp.getNote());
+        }catch(Exception e3){}   
+        
+        
+        
     }
 %>
