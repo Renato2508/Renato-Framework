@@ -128,6 +128,7 @@ public class Utils {
         return classes;
     }
 
+    
     public static String getPathFromURL(String url, String context){
         String res;
         String[] spliting = url.split(context+"/"); //le but est de recuperer la partie qui vient apres le contexte

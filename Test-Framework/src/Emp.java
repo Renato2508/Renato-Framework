@@ -8,8 +8,12 @@ import java.util.Vector;
 
 public class Emp {
     String nom;
-    Integer age;
+    int age;
     float note;
+    Date embauche;
+    boolean status;
+    float prime;
+
     public float getNote() {
         return note;
     }
@@ -18,7 +22,7 @@ public class Emp {
         this.note = note;
     }
 
-    Date embauche;
+    
 
     // _ _ _ Constructors _ _ _
 
@@ -26,8 +30,12 @@ public class Emp {
     public Emp(){
 
     }
-    
-    // _ _ _ Methods _ _ _
+    // _ _ _ MODEL Methods _ _ _
+    public float computePrime(float note, float salaire){
+        return note*salaire;
+    }
+
+    // _ _ _ CONTROLLER Methods _ _ _
     @Urls(url = "voidArgs")
     public ModelView embaucher(){
         ModelView mv = new ModelView();
@@ -49,6 +57,7 @@ public class Emp {
 
         return mv;
     }
+
 
     @Urls(url = "getAllEmp")
     public ModelView getAll(){
@@ -77,20 +86,17 @@ public class Emp {
     }
 
     @Urls(url = "showOneEmp")
-    public ModelView listeEmpSaisi(String nom, int age, Date embauche, float note){
+    public ModelView listeEmpSaisi( float salaire){
         ModelView mv = new ModelView();
         Vector<Emp> liste = new Vector<Emp>();
         liste.add(this);
         mv.addItem("liste", liste);
+    
+        this.setPrime(computePrime(this.note, salaire));
         
-        this.setAge(age);
-        this.setNom(nom);
-        this.setEmbauche(embauche);
-        this.setNote(note);
-        
-        System.out.println("Nom:\t"+ this.getNom());
-        System.out.println("Age:\t"+ this.getAge());
-        System.out.println("Date embauche: "+ this.getEmbauche().toString());
+        //System.out.println("Nom:\t"+ this.getNom());
+        //System.out.println("Age:\t"+ this.getAge());
+        //System.out.println("Date embauche: "+ this.getEmbauche().toString());
 
         mv.setView("emp-list.jsp");
         return mv;
@@ -107,16 +113,12 @@ public class Emp {
     }
 
 
-    public Integer getAge() {
+    public int getAge() {
         return age;
     }
 
-    public void setAge(Integer age) {
+    public void setAge(int age) {
         this.age = age;
-    }
-
-    public void setAge(String age){
-        this.age = Integer.valueOf(age);
     }
 
     public Date getEmbauche() {
@@ -125,6 +127,26 @@ public class Emp {
 
     public void setEmbauche(Date embauche) {
         this.embauche = embauche;
+    }
+
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
+    }
+
+    public boolean getStatus(){
+        return this.status;
+    }
+
+    public float getPrime() {
+        return prime;
+    }
+
+    public void setPrime(float prime) {
+        this.prime = prime;
     }
 
 }

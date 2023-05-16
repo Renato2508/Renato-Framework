@@ -23,6 +23,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.RequestDispatcher;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+
 public class FrontServlet extends HttpServlet {
 
     HashMap<String, Mapping> mappingUrls;   // liste des methodes annotees avec leurs classes
@@ -110,37 +113,52 @@ public class FrontServlet extends HttpServlet {
     }
 
 
-    // invocation d'Une methode d'un modele donne dont on connait le nomm l'instance appelante et la liste des arguments
+    // invocation d'Une methode d'un modele donne dont on connait le nom, l'instance appelante et la liste des arguments
     public static Object invoke(Object instance, HttpServletRequest req, Method methode) throws Exception{
-
+        System.out.println("----------------------------------\nMETHODE: "+ methode.getName());
         // liste de tous les noms de parametres de la requete
-        Enumeration<String> parameterNames = req.getParameterNames();
+        //Enumeration<String> parameterNames = req.getParameterNames();
 
-        // liste des arguments de la fonction
+        // liste des arguments formels de la fonction
         Parameter[] argForms = methode.getParameters();
+        Parameter arg;
 
-        // liste de tous les arguments
+        // liste de tous les arguments a passer a la fin
         Object[] args = new  Object[argForms.length];
         
         //Valeur de l'argument courant
-        String argVal;
-        Object argValCast; 
-        Parameter arg;
+        String argVal = null;
+        String[] argValues;
 
+        //instance castee vers le type attendu
+        Object argValCast; 
+
+        // CONSTRUCTION DE LA LISTE DES ARGUMENTS EFFECTIFS
+        // parcours de la liste des arguments formels de la fonction
         for(int i = 0; i < args.length; i++){
             arg = argForms[i];
-            System.out.println("NOMS D'args: "+ arg.getName()+ "\n" + "TYPE: " + arg.getType().getName());
-            argVal = req.getParameterValues(arg.getName())[0];
-            argValCast = FrontServlet.cast(argVal, arg.getType());
+            System.out.println("NOMS D'args: "+ arg.getName()+ "\n" + "TYPE ATTENDU: " + arg.getType().getName());
+            argValues = req.getParameterValues(arg.getName());
+
+            //RECUPERATION DE LA BONNE INSTANCE DE CHAQUE ARGUMENT SELON LE TYPE D'ARGUMENT ATTENDU
             try{
+                // cas ou le parametre est present dans la requete
+                // mais le champ n'est pas rempli
+                argVal = argValues[0];
+                argValCast = FrontServlet.cast(argVal, arg.getType());
                 System.out.println("VALEUR D'args: "+ argValCast+ "\n" + "TYPE PRESENT: " + argValCast.getClass().getName());
+                argVal = null;
             }
-            catch(Exception e){}
+            catch(Exception e){
+                // cas OU le parametre ne figure pas dans la requete
+                // envoi de NULL vers la methode a invoquer
+                argValCast = FrontServlet.cast(argVal, arg.getType());
+            }   
 
             args[i] = argValCast;
         }
 
-        //invocation de la methode avec tous les arguments
+        //INVOCATION DE LA METHODE D'INSTANCE
         return methode.invoke(instance, args);
 
     }
@@ -152,32 +170,62 @@ public class FrontServlet extends HttpServlet {
                 // pour les types ayant la methode valueOf(String s)
                 return type.getDeclaredMethod("valueOf", String.class).invoke(null, value); 
             } 
-            catch(Exception e){}
+            catch (java.lang.reflect.InvocationTargetException eg){
+                //eg.printStackTrace();
+                return null;
+            }
+            catch(Exception e){
+                //e.printStackTrace();
+            }
                 // arguments de types primitifs
 
             try {
                 String nomDeType = type.getSimpleName();
                 //int 
                 if(nomDeType.compareToIgnoreCase("int") == 0){
-                    return Integer.parseInt(value); 
+                    try{
+                        return Integer.parseInt(value); 
+                    }
+                    catch(Exception e4){
+                        e4.printStackTrace();
+                        return 0;
+                    }
                 }
 
                 // double
                 else if(nomDeType.compareToIgnoreCase("double") == 0){
-                    return Double.parseDouble(value); 
+                    try{
+                        return Double.parseDouble(value);                     
+                    }
+                    catch(Exception e5){
+                        //e5.printStackTrace();
+                        return Double.parseDouble("0.0");
+                    }                                  
 
                 }
 
+                //float
                 else if(nomDeType.compareToIgnoreCase("float") == 0){
-                    return Float.parseFloat(value); 
+                    try{
+                        return Float.parseFloat(value);                     
+                    }
+                    catch(Exception e6){
+                        //e6.printStackTrace();
+                        return Float.parseFloat("0.0");
+                    }
                 }
 
-                // boolean
-
+                // boolean            
                 else if(nomDeType.compareToIgnoreCase("boolean") == 0){
-                    return Boolean.parseBoolean(nomDeType);
-                }
-            } 
+                    try{
+                        return Boolean.parseBoolean(value);                     
+                    }
+                    catch(Exception e7){
+                        //e7.printStackTrace();
+                        return false;
+                    }
+                } 
+            }
             catch (Exception e2) {}
             
             //String
@@ -187,39 +235,33 @@ public class FrontServlet extends HttpServlet {
             
 
     // donner des valeurs aux attributs 
-    public static void setAttributes(Object instance, HttpServletRequest req, Class<?> classe, Method[] methods) throws Exception{
-        // nom du parametre courant
-        String paramName;
-        // valeurs possibles du parametre
-        String[] paramValues;
-        
-        // liste de tous les noms de parametres de la requete
-        Enumeration<String> parameterNames = req.getParameterNames();
+    public static void setAttributes(Object instance, HttpServletRequest req, Class<?> classe, Method[] methods) throws Exception {
+        // liste des attributs de la classe
+        Field[] attrList = classe.getDeclaredFields();
 
-        // parcours de la liste de noms de parametres
-        while (parameterNames.hasMoreElements()) {
-            paramName = parameterNames.nextElement();
-            System.out.println("Parameter Name: " + paramName);
-            paramValues = req.getParameterValues(paramName);
+        String attrName;    // nom de l'attribut courant
+        String attrSetterName;  // nom du setter correspondant
+        String[] argVal;  // valeur eventuelle de cet attribut dans les variables de la requete
 
-            // recherhce du setter correspondant
-            for(Method courant : methods){
-                if(courant.getName().compareToIgnoreCase("set"+paramName) == 0){
-                    try{
-                        // caster l'argument vers le type 
-                        // attendu par le setter
-                        Class<?> [] types = courant.getParameterTypes(); 
-                        courant.invoke(classe.cast(instance), FrontServlet.cast(paramValues[0], types[0]));
-                    }
-                    catch (Exception e){
-                        throw e;
+        // parcours de la liste des attributs
+        for (Field attr : attrList) {
+            attrName = attr.getName();
+
+            // formation du nom du setter correspondant a cet attribut
+            attrSetterName = "set" + attrName.substring(0, 1).toUpperCase() + attrName.substring(1);
+
+            argVal = req.getParameterValues(attrName);
+
+            if (argVal != null) {
+                for (Method method : methods) {
+                    if (method.getName().equalsIgnoreCase(attrSetterName)) {
+                        FrontServlet.invoke(instance, req, method);
                     }
                 }
-            }           
+            }
         }
-        
     }
-    
+        
     public static Object getInstance(Mapping map) throws Exception{
         try{
             Class classe = Class.forName(map.getClassName());
