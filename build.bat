@@ -2,11 +2,13 @@ cls
 @echo off
 REM compilation de FW
 cd Framework\build
-javac -d . ..\src\Mapping.java
-javac -d . ..\src\ModelView.java
-javac -d . ..\src\Urls.java
-javac -d . ..\src\Utils.java
-javac -d . ..\src\FrontServlet.java
+REM javac -d . ..\src\Mapping.java
+REM javac -d . ..\src\ModelView.java
+REM javac -d . ..\src\Urls.java
+REM javac -d . ..\src\Utils.java
+REM javac -d . ..\src\FrontServlet.java
+
+javac -parameters -d . ..\src\*.java
 
 REM exportation en jar
 
@@ -21,7 +23,7 @@ cd Test-Framework\WEB-INF\classes
 set CLASSPATH=%CLASSPATH%;E:\S4\projets\M_Naina\Framework_2m_fetch\Renato-Framework\fw.jar
 echo "AFFICHAGE DE CLASSPATH: "
 echo %CLASSPATH%
-javac -d . ../../src/*.java
+javac -parameters -d . ../../src/*.java
 
 Rem vers Test-Framework
 cd ../../

@@ -11,9 +11,15 @@ import etu1830.framework.ModelView;
 
 
 public class Utils {
+
+    // set d'un attribut de nom et de valeur connue
+    public static void setAttribute(String fieldName, String[] fieldValue, Object instance){
+        
+    }
     
     // recuperation d'une instance de methode
     // et son objet appelant
+    // Obsolete a partir du SPRINT 7
     public static ModelView getModelView(Mapping map) throws Exception{
         Object mv;
         try{
@@ -122,6 +128,7 @@ public class Utils {
         return classes;
     }
 
+    
     public static String getPathFromURL(String url, String context){
         String res;
         String[] spliting = url.split(context+"/"); //le but est de recuperer la partie qui vient apres le contexte
