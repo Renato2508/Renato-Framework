@@ -27,6 +27,12 @@
         try{
             out.println("Prime: "+emp.getPrime()+"<br>");
         }catch(Exception e5){}
+
+        try{
+            out.println("FICHIER: "+ emp.getFile().getFileName() + " ===>>> " + emp.getFile().getBytes());
+        }catch(Exception e6){
+            //e6.printStackTrace();
+        }
         
         
         

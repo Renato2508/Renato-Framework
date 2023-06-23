@@ -2,11 +2,14 @@ package etu1830.framework.servlet;
 
 import etu1830.framework.Mapping;
 import etu1830.framework.ModelView;
+import etu1830.framework.FileUpload;
 import etu1830.utils.Utils;
-import java.util.Enumeration;
+import etu1830.annotation.Args;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
+import java.util.Enumeration;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.math.BigDecimal;
@@ -22,12 +25,16 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.RequestDispatcher;
+import javax.servlet.http.Part;
+import javax.servlet.annotation.MultipartConfig;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
+@MultipartConfig
 public class FrontServlet extends HttpServlet {
 
+    HashMap<String, Object> singles;                        // liste des classes singleton
     HashMap<String, Mapping> mappingUrls;   // liste des methodes annotees avec leurs classes
                                             // <l'annotation et le Mapping correspondant>
     String context;
@@ -36,7 +43,9 @@ public class FrontServlet extends HttpServlet {
         try{
             this.context = this.getInitParameter("context");
             String p = "";
-            this.mappingUrls =  Utils.getUrlsAnnotedMethods(Utils.getClasses( null  , p ));
+            Vector<Class<?>> classes  = Utils.getClasses( null  , p );
+            this.mappingUrls =  Utils.getUrlsAnnotedMethods(classes);
+            this.singles = Utils.getScopAnnotedClasses(classes);
         }catch( Exception e ){
             e.printStackTrace();
         }
@@ -67,7 +76,7 @@ public class FrontServlet extends HttpServlet {
             Mapping map = this.mappingUrls.get(slug);
             if(map == null) out.println("URL non atteignable car Annotation inconnue");
             else{
-                Object instance = FrontServlet.getInstance(map);
+                Object instance = this.getInstance(map);
                 Class<?> classe = instance.getClass();
                 Method[] methods = classe.getDeclaredMethods();
         
@@ -89,8 +98,9 @@ public class FrontServlet extends HttpServlet {
                     }
                 }
                 
-                
-                Object result = FrontServlet.invoke(classe.cast(instance), req, methode);  
+                Object[] args = FrontServlet.generateArgs(req, methode);
+                Object result = methode.invoke(classe.cast(instance),args);
+                //Object result = FrontServlet.invoke(classe.cast(instance), req, methode);  
                 
                 // Passage de donnees vers une vue
                 if(result instanceof ModelView == true){
@@ -112,8 +122,58 @@ public class FrontServlet extends HttpServlet {
         
     }
 
+    // generation des arguments necessaire a une methode a partir d'une requete HTTP
+    public static Object[] generateArgs(HttpServletRequest req, Method methode){
+        // liste des arguments formels de la fonction
+        Parameter[] argForms = methode.getParameters();
+        Parameter arg;
 
+        // liste de tous les arguments a passer a la fin(le resultat) 
+        Object[] args = new  Object[argForms.length];
+        
+        //Valeur de l'argument courant
+        String argVal = null;
+        String[] argValues;
+
+        //instance castee vers le type attendu
+        Object argValCast; 
+
+        // CONSTRUCTION DE LA LISTE DES ARGUMENTS EFFECTIFS
+        // parcours de la liste des arguments formels de la fonction
+        String argName; // valeur de l'url de l'Annotatioln Args
+
+        for(int i = 0; i < args.length; i++){
+            arg = argForms[i];            
+            argName = arg.getAnnotation(Args.class).argName();
+            System.out.println("NOMS D'args: "+ argName + "\n" + "TYPE ATTENDU: " + arg.getType().getName());
+            argValues = req.getParameterValues(argName);
+
+            //RECUPERATION DE LA BONNE INSTANCE DE CHAQUE ARGUMENT SELON LE TYPE D'ARGUMENT ATTENDU
+            try{
+                // cas ou le parametre est present dans la requete
+                // mais le champ n'est pas rempli
+                argVal = argValues[0];
+                argValCast = FrontServlet.cast(argVal, arg.getType());
+                System.out.println("VALEUR D'args: "+ argValCast+ "\n" + "TYPE PRESENT: " + argValCast.getClass().getName());
+                argVal = null;
+            }
+            catch(Exception e){
+                // cas OU le parametre ne figure pas dans la requete
+                // envoi de NULL vers la methode a invoquer
+                argValCast = FrontServlet.cast(argVal, arg.getType());
+            }   
+
+            args[i] = argValCast;
+        }
+        return args;
+    }
+    
     // invocation d'Une methode d'un modele donne dont on connait le nom, l'instance appelante et la liste des arguments
+    
+    public static Object invoke(Object instance, Method methode, Object[] args)throws Exception{
+        return methode.invoke(instance, args);
+    }
+    
     public static Object invoke(Object instance, HttpServletRequest req, Method methode) throws Exception{
         System.out.println("----------------------------------\nMETHODE: "+ methode.getName());
         // liste de tous les noms de parametres de la requete
@@ -135,10 +195,13 @@ public class FrontServlet extends HttpServlet {
 
         // CONSTRUCTION DE LA LISTE DES ARGUMENTS EFFECTIFS
         // parcours de la liste des arguments formels de la fonction
+        String argName; // valeur de l'url de l'Annotatioln Urls
+
         for(int i = 0; i < args.length; i++){
-            arg = argForms[i];
-            System.out.println("NOMS D'args: "+ arg.getName()+ "\n" + "TYPE ATTENDU: " + arg.getType().getName());
-            argValues = req.getParameterValues(arg.getName());
+            arg = argForms[i];            
+            argName = arg.getAnnotation(Args.class).argName();
+            System.out.println("NOMS D'args: "+ argName + "\n" + "TYPE ATTENDU: " + arg.getType().getName());
+            argValues = req.getParameterValues(argName);
 
             //RECUPERATION DE LA BONNE INSTANCE DE CHAQUE ARGUMENT SELON LE TYPE D'ARGUMENT ATTENDU
             try{
@@ -187,7 +250,7 @@ public class FrontServlet extends HttpServlet {
                         return Integer.parseInt(value); 
                     }
                     catch(Exception e4){
-                        e4.printStackTrace();
+                        //e4.printStackTrace();
                         return 0;
                     }
                 }
@@ -232,16 +295,16 @@ public class FrontServlet extends HttpServlet {
             return value;
     }
 
-            
-
-    // donner des valeurs aux attributs 
+// donner des valeurs aux attributs 
     public static void setAttributes(Object instance, HttpServletRequest req, Class<?> classe, Method[] methods) throws Exception {
         // liste des attributs de la classe
         Field[] attrList = classe.getDeclaredFields();
 
         String attrName;    // nom de l'attribut courant
         String attrSetterName;  // nom du setter correspondant
-        String[] argVal;  // valeur eventuelle de cet attribut dans les variables de la requete
+        Object[] args = new Object[1]; // liste des arguments a passer aux setters
+        String argValInReq; // valeur passee correspondant a un attribut
+        Object argValCast;  // instance correpondante a l'argument formel du setter
 
         // parcours de la liste des attributs
         for (Field attr : attrList) {
@@ -250,27 +313,108 @@ public class FrontServlet extends HttpServlet {
             // formation du nom du setter correspondant a cet attribut
             attrSetterName = "set" + attrName.substring(0, 1).toUpperCase() + attrName.substring(1);
 
-            argVal = req.getParameterValues(attrName);
 
-            if (argVal != null) {
-                for (Method method : methods) {
-                    if (method.getName().equalsIgnoreCase(attrSetterName)) {
-                        FrontServlet.invoke(instance, req, method);
+            // cas de passage de fichier
+            if(attr.getType().getSimpleName().equalsIgnoreCase("fileupload")){
+                Part partfile = req.getPart(attrName);
+                if (partfile != null) {
+                    // nom du fichier passe depuis la vue
+                    String fileName = partfile.getSubmittedFileName();
+                    InputStream is = partfile.getInputStream();
+                    byte[] bytes = new byte[(int) partfile.getSize()];
+                    // lecture du Part et ajout du contenu au byte[]
+                    is.read(bytes);
+                    FileUpload fu = new FileUpload(fileName, bytes);
+                    args[0] = fu;
+
+                    // recherche du setter correspondant
+                    for (Method method : methods) {
+                        if (method.getName().equalsIgnoreCase(attrSetterName)) {
+                            method.invoke(instance, args);
+                            //FrontServlet.invoke(instance, method, args);
+                        }
+                    }
+                }
+                
+            }
+            // cas des autres types d'attributs
+            else{
+                
+                String[] argValsInReq = req.getParameterValues(attrName);
+                if (argValsInReq != null) {
+                    argValInReq = argValsInReq[0];
+                    for (Method method : methods) {
+                        if (method.getName().equalsIgnoreCase(attrSetterName)) {
+                            Parameter arg = method.getParameters()[0];
+                            argValCast = FrontServlet.cast(argValInReq, arg.getType());
+                            args[0] = argValCast;
+                            method.invoke(instance,args);
+                            //args = FrontServlet.generateArgs(req, method);
+                            //FrontServlet.invoke(instance, method, args);
+                        }   
                     }
                 }
             }
+            
         }
     }
+
+
+    public static void resetAttributes(Object instance) {
+        Class<?> clazz = instance.getClass();
+        Field[] fields = clazz.getDeclaredFields();
         
-    public static Object getInstance(Mapping map) throws Exception{
-        try{
-            Class classe = Class.forName(map.getClassName());
-            return classe.cast(classe.newInstance());
+        for (Field field : fields) {
+            field.setAccessible(true);
+            
+            try {
+                Object value = null;
+                
+                if (field.getType().equals(int.class)) {
+                    value = 0;
+                } else if (field.getType().equals(double.class)) {
+                    value = 0.0;
+                } else if (field.getType().equals(float.class)) {
+                    value = 0.0f;
+                } else if (field.getType().equals(boolean.class)) {
+                    value = false;
+                }
+                
+                field.set(instance, value);
+            } catch (IllegalAccessException e) {
+                // Gérer l'exception appropriée ici
+                e.printStackTrace();
+            }
         }
-        catch(Exception e){
-            throw e;
+    }
+    
+    public Object getInstance(Mapping map) throws Exception{
+        String className = map.getClassName();
+        Object res;         // instance a retourner
+
+        if(this.singles.containsKey(className) && this.singles.get(className) != null){
+            // cas d'une classe a instance unique et deja instanciee
+            System.out.println("Classe :"+className+" "+"INSTANCE PRESENTE");
+            Object instance = this.singles.get(className);
+            //FrontServlet.resetAttributes(instance);     //reinitialiser les attributs pour eviter lesconflits entre les valeurs
+            res =  instance;
         }
         
+        else{
+            // cas d'une classe multi-instance  ou d'une classe de singleton mais non encore instanciee       
+            try{
+                System.out.println("Classe :"+className+" "+"INSTANCIATION...");
+                Class classe = Class.forName(map.getClassName());
+                res = classe.cast(classe.newInstance());
+                if(this.singles.containsKey(className) && this.singles.get(className) == null){
+                    this.singles.put(className, res);
+                }
+            }
+            catch(Exception e){
+                throw e;
+            }
+        }
+        return res;
     }
     
     
