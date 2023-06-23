@@ -6,6 +6,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Vector;
 import etu1830.annotation.Urls;
+import etu1830.annotation.Scop;
 import etu1830.framework.Mapping;
 import etu1830.framework.ModelView;
 
@@ -47,7 +48,24 @@ public class Utils {
         
     }
     
-                
+     // recuperation des classes annotees SCOP
+    public static HashMap<String, Object> getScopAnnotedClasses(Vector<Class<?>> classes) {
+        HashMap<String, Object> resultMap = new HashMap<String, Object>();
+        Scop annotation;
+        String className;
+        
+        for (Class<?> clazz : classes) {
+            annotation = clazz.getAnnotation(Scop.class);
+            
+            if (annotation != null && annotation.isSingle() == true) {
+                className = clazz.getName();
+                resultMap.put(className, null);
+            }
+        }
+        
+        return resultMap;
+    }
+
     // recuperation de toutes les methodes annotees URls
     public static HashMap<String, Mapping> getUrlsAnnotedMethods(Vector<Class<?>> classes){
         java.lang.reflect.Method[] methods;

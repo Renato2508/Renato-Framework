@@ -1,11 +1,13 @@
 package model.societe;
 
-import etu1830.annotation.Urls;
+import etu1830.annotation.*;
 import etu1830.framework.ModelView;
 
 import java.sql.Date;
 import java.util.Vector;
+import etu1830.framework.FileUpload;
 
+@Scop(isSingle = true)
 public class Emp {
     String nom;
     int age;
@@ -13,23 +15,17 @@ public class Emp {
     Date embauche;
     boolean status;
     float prime;
-
-    public float getNote() {
-        return note;
-    }
-
-    public void setNote(float note) {
-        this.note = note;
-    }
-
-    
+    FileUpload file;
+    static int appels = 0; 
 
     // _ _ _ Constructors _ _ _
 
     
     public Emp(){
-
+        Emp.appels ++;
+        System.out.println("---> INSTANCES DE EMP: "+Emp.appels);
     }
+
     // _ _ _ MODEL Methods _ _ _
     public float computePrime(float note, float salaire){
         return note*salaire;
@@ -86,7 +82,7 @@ public class Emp {
     }
 
     @Urls(url = "showOneEmp")
-    public ModelView listeEmpSaisi( float salaire){
+    public ModelView listeEmpSaisi( @Args(argName = "salaire") float salaire){
         ModelView mv = new ModelView();
         Vector<Emp> liste = new Vector<Emp>();
         liste.add(this);
@@ -99,6 +95,7 @@ public class Emp {
         //System.out.println("Date embauche: "+ this.getEmbauche().toString());
 
         mv.setView("emp-list.jsp");
+        System.out.println("INSTANCES DE EMP: "+Emp.appels);
         return mv;
     }
 
@@ -147,6 +144,28 @@ public class Emp {
 
     public void setPrime(float prime) {
         this.prime = prime;
+    }
+
+    public FileUpload getFile() {
+        return file;
+    }
+
+    public void setFile(@Args(argName = "file")FileUpload file) {
+        this.file = file;
+    }
+
+    public float getNote() {
+        return note;
+    }
+
+    public void setNote(float note) {
+        this.note = note;
+    }
+    public int getAppels() {
+        return appels;
+    }
+    public void setAppels(int appels) {
+        this.appels = appels;
     }
 
 }
