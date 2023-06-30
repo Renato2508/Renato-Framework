@@ -5,6 +5,7 @@ import etu1830.framework.ModelView;
 import etu1830.framework.FileUpload;
 import etu1830.utils.Utils;
 import etu1830.annotation.Args;
+import etu1830.annotation.Auth;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,6 +28,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.http.Part;
 import javax.servlet.annotation.MultipartConfig;
+import javax.servlet.http.HttpSession;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -38,9 +40,11 @@ public class FrontServlet extends HttpServlet {
     HashMap<String, Mapping> mappingUrls;   // liste des methodes annotees avec leurs classes
                                             // <l'annotation et le Mapping correspondant>
     String context;
+    String connectedProfileKey;
 
     public void init() throws ServletException {
         try{
+            this.connectedProfileKey = this.getInitParameter("connectedProfileKey");
             this.context = this.getInitParameter("context");
             String p = "";
             Vector<Class<?>> classes  = Utils.getClasses( null  , p );
@@ -54,8 +58,10 @@ public class FrontServlet extends HttpServlet {
     protected void processRequest(HttpServletRequest req,
     HttpServletResponse res) throws IOException, ServletException{
         try{
+
+            HttpSession session = req.getSession();
             PrintWriter out = res.getWriter();
-            out.println("BIENVENUE");
+            //out.println("BIENVENUE");
             // recupeartion de l'URL de la requete
             String url = req.getRequestURL().toString();
 
@@ -97,9 +103,20 @@ public class FrontServlet extends HttpServlet {
                         if (courant.getName().equals(map.getMethod())) methode = courant;
                     }
                 }
+
+                Object[] args;
+                Object result = null;
+
+                try {
+                    this.authenticate(methode, session);
+
+                     args = FrontServlet.generateArgs(req, methode);
+                     result = methode.invoke(classe.cast(instance),args);
+                    
+                } catch (Exception e1) {
+                   out.print(e1);
+                }
                 
-                Object[] args = FrontServlet.generateArgs(req, methode);
-                Object result = methode.invoke(classe.cast(instance),args);
                 //Object result = FrontServlet.invoke(classe.cast(instance), req, methode);  
                 
                 // Passage de donnees vers une vue
@@ -107,11 +124,10 @@ public class FrontServlet extends HttpServlet {
                     ModelView mv =  (ModelView)result;
 
                     // ajout de toutes les donnees a
-                    // a passer vers la vue
-                    for(Map.Entry<String, Object> entree : mv.getData().entrySet()){
-                        req.setAttribute(entree.getKey(), entree.getValue());
-                    }
-
+                    // a passer vers la vue (data et session)
+                    FrontServlet.setRequestAttributes(req, mv);
+                    FrontServlet.setSessionAttributes(session, mv);
+                    
                     RequestDispatcher dispat = req.getRequestDispatcher(mv.getView());
                     dispat.forward(req,res);  
                 }
@@ -120,6 +136,36 @@ public class FrontServlet extends HttpServlet {
             e.printStackTrace();
         }
         
+    }
+
+    // verification d'autorisation d'acces a une methode d'action
+    public void authenticate(Method methode,   HttpSession session) throws Exception{
+        Auth annotation = methode.getAnnotation(Auth.class) ;
+        String profile = null;
+        try{
+            profile = annotation.profile();
+        }
+        catch(Exception e){}
+
+        if (annotation != null && profile.equals(session.getAttribute(this.connectedProfileKey)) == false){
+            throw new Exception(methode.getName()+" Non autorisee pour le profil "+ session.getAttribute(this.connectedProfileKey));
+        }
+    }
+
+    // transfert des donnes du MV vers les attributs de la variable session
+    public static void setSessionAttributes(HttpSession session, ModelView mv){
+        System.out.println("--> Setting session Attributes...");
+        for(Map.Entry<String, Object> entree : mv.getSession().entrySet()){
+            System.out.println("Attribute: "+entree.getKey()+" Value:"+entree.getValue());
+            session.setAttribute(entree.getKey(), entree.getValue());
+        }
+    }
+
+    //tranfert des donnees dans le MV vers les attributs de la requete
+    public static void setRequestAttributes(HttpServletRequest req, ModelView mv){
+        for(Map.Entry<String, Object> entree : mv.getData().entrySet()){
+            req.setAttribute(entree.getKey(), entree.getValue());
+        }
     }
 
     // generation des arguments necessaire a une methode a partir d'une requete HTTP

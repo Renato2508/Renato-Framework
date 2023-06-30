@@ -17,6 +17,13 @@
         <param-value>TFW</param-value>
         <description>contexte web du projet</description>
       </init-param>
+
+      <init-param>
+        <param-name>connectedProfileKey</param-name>
+        <param-value>connectedProfileKey</param-value>
+        <description>profil connecte</description>
+      </init-param>
+
     </servlet>
     
     <servlet-mapping>
