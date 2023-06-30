@@ -4,8 +4,7 @@ import etu1830.framework.Mapping;
 import etu1830.framework.ModelView;
 import etu1830.framework.FileUpload;
 import etu1830.utils.Utils;
-import etu1830.annotation.Args;
-import etu1830.annotation.Auth;
+import etu1830.annotation.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -109,12 +108,13 @@ public class FrontServlet extends HttpServlet {
 
                 try {
                     this.authenticate(methode, session);
-
+                    this.needSession(methode,instance, classe, session);
                      args = FrontServlet.generateArgs(req, methode);
                      result = methode.invoke(classe.cast(instance),args);
                     
                 } catch (Exception e1) {
-                   out.print(e1);
+                   //out.print(e1);
+                   e1.printStackTrace();
                 }
                 
                 //Object result = FrontServlet.invoke(classe.cast(instance), req, methode);  
@@ -136,6 +136,37 @@ public class FrontServlet extends HttpServlet {
             e.printStackTrace();
         }
         
+    }
+
+    // transformation de la session sous forme de HashMap
+
+    public HashMap<String, Object> serializeSession(HttpSession session){
+        // Créez un HashMap pour stocker les paires clé-valeur
+        HashMap<String, Object> hashMap = new HashMap<String, Object>();
+
+        // Récupérez toutes les clés de la session
+        Enumeration<String> keys = session.getAttributeNames();
+
+        // Parcourez les clés et insérez-les dans le HashMap
+        while (keys.hasMoreElements()) {
+            String key = keys.nextElement();
+            Object value = session.getAttribute(key);
+            hashMap.put(key, value);
+        }
+        
+        return hashMap;
+    }
+
+    // verification si une methode est anotee Session et passage du contenu de la Session a l'instance appelante
+    public void needSession(Method methode, Object instance, Class classe, HttpSession session){
+        if(methode.getAnnotation(Session.class)!= null){
+            try {
+                classe.getDeclaredMethod("setSession", HashMap.class).invoke(instance, this.serializeSession(session));                
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            
+        }
     }
 
     // verification d'autorisation d'acces a une methode d'action

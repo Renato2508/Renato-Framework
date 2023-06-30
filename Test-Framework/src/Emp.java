@@ -2,10 +2,13 @@ package model.societe;
 
 import etu1830.annotation.*;
 import etu1830.framework.ModelView;
+import etu1830.framework.FileUpload;
 
 import java.sql.Date;
 import java.util.Vector;
-import etu1830.framework.FileUpload;
+import java.util.HashMap;
+import java.util.Map;
+
 
 @Scop(isSingle = true)
 public class Emp {
@@ -17,13 +20,14 @@ public class Emp {
     float prime;
     FileUpload file;
     static int appels = 0; 
+    HashMap<String, Object> session;
 
     // _ _ _ Constructors _ _ _
 
     
     public Emp(){
         Emp.appels ++;
-        System.out.println("---> INSTANCES DE EMP: "+Emp.appels);
+        //System.out.println("---> INSTANCES DE EMP: "+Emp.appels);
     }
 
     // _ _ _ MODEL Methods _ _ _
@@ -82,11 +86,21 @@ public class Emp {
     }
 
     @Urls(url = "showOneEmp")
+    @Auth(profile = "nato")
+    @Session()
     public ModelView listeEmpSaisi( @Args(argName = "salaire") float salaire){
         ModelView mv = new ModelView();
         Vector<Emp> liste = new Vector<Emp>();
         liste.add(this);
         mv.addItem("liste", liste);
+        mv.addSessionItem("cle", "valeur");
+
+        System.out.println("Contenu de la variable de session: ");
+        for (Map.Entry<String, Object> entry : this.session.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+            System.out.println("Clé : " + key + ", Valeur : " + value);
+        }
     
         this.setPrime(computePrime(this.note, salaire));
         
@@ -95,7 +109,7 @@ public class Emp {
         //System.out.println("Date embauche: "+ this.getEmbauche().toString());
 
         mv.setView("emp-list.jsp");
-        System.out.println("INSTANCES DE EMP: "+Emp.appels);
+        //System.out.println("INSTANCES DE EMP: "+Emp.appels);
         return mv;
     }
 
@@ -166,6 +180,14 @@ public class Emp {
     }
     public void setAppels(int appels) {
         this.appels = appels;
+    }
+
+    public HashMap<String, Object> getSession() {
+        return session;
+    }
+
+    public void setSession(HashMap<String, Object> session) {
+        this.session = session;
     }
 
 }
