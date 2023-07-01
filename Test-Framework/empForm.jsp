@@ -7,7 +7,7 @@
     <title>Document</title>
 </head>
 <body>
-    <form action="showOneEmp" method="POST" enctype="multipart/form-data">
+    <form action="prime" method="POST" enctype="multipart/form-data">
         <p>Nom: <input type="text" name="nom"></p>
         <p>Age: <input type="text" name="age"></p>
         <p> Date embauche: <input type="date" name ="embauche"></p>
