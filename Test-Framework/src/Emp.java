@@ -81,6 +81,7 @@ public class Emp {
 
         // ajout de la liste aux donnees a passer
         mv.addItem("liste", liste);
+        mv.setIsJson(true);
 
         return mv;
     }

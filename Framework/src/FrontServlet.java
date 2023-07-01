@@ -32,6 +32,9 @@ import javax.servlet.http.HttpSession;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
+import com.google.gson.Gson;
+
+
 @MultipartConfig
 public class FrontServlet extends HttpServlet {
 
@@ -122,20 +125,38 @@ public class FrontServlet extends HttpServlet {
                 // Passage de donnees vers une vue
                 if(result instanceof ModelView == true){
                     ModelView mv =  (ModelView)result;
-
-                    // ajout de toutes les donnees a
-                    // a passer vers la vue (data et session)
-                    FrontServlet.setRequestAttributes(req, mv);
-                    FrontServlet.setSessionAttributes(session, mv);
+                    if(mv.getIsJson() == true){
+                        String json = this.serialize(mv);
+                         // Modification du Content-Type de la réponse en JSON
+                        res.setContentType("application/json");
+                        out.print(json);
+                    }
+                    else{
+                        // ajout de toutes les donnees a
+                        // a passer vers la vue (data et session)
+                        FrontServlet.setRequestAttributes(req, mv);
+                        FrontServlet.setSessionAttributes(session, mv);
+                        
+                        RequestDispatcher dispat = req.getRequestDispatcher(mv.getView());
+                        dispat.forward(req,res);  
+                    }
                     
-                    RequestDispatcher dispat = req.getRequestDispatcher(mv.getView());
-                    dispat.forward(req,res);  
                 }
             }    
         }catch( Exception e ){
             e.printStackTrace();
         }
         
+    }
+
+    // serialisation des donnees d'une MV sous forme de JSON
+    public String serialize(ModelView mv){
+         // Création de l'objet Gson
+         Gson gson = new Gson();
+
+         // Conversion de la HashMap en JSON
+         String json = gson.toJson(mv.getData());
+         return json;
     }
 
     // transformation de la session sous forme de HashMap
@@ -390,9 +411,9 @@ public class FrontServlet extends HttpServlet {
             // formation du nom du setter correspondant a cet attribut
             attrSetterName = "set" + attrName.substring(0, 1).toUpperCase() + attrName.substring(1);
 
-
+            String contentType = req.getContentType();
             // cas de passage de fichier
-            if(attr.getType().getSimpleName().equalsIgnoreCase("fileupload")){
+            if(attr.getType().getSimpleName().equalsIgnoreCase("fileupload") && contentType != null && contentType.startsWith("multipart/form-data")){
                 Part partfile = req.getPart(attrName);
                 if (partfile != null) {
                     // nom du fichier passe depuis la vue
