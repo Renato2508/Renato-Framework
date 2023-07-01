@@ -142,12 +142,28 @@ public class FrontServlet extends HttpServlet {
                     }
                     
                 }
+                else if (methode.getAnnotation(IsJson.class) != null ){
+                    String json = this.serialize(result);
+                    res.setContentType("application/json");
+                    out.print(json);
+                }
             }    
         }catch( Exception e ){
             e.printStackTrace();
         }
         
     }
+
+    // serialisation d'un Objet sous forme de JSON
+    public String serialize(Object mv){
+        // Création de l'objet Gson
+        Gson gson = new Gson();
+
+        // Conversion de la HashMap en JSON
+        String json = gson.toJson(mv);
+        return json;
+   }
+
 
     // serialisation des donnees d'une MV sous forme de JSON
     public String serialize(ModelView mv){

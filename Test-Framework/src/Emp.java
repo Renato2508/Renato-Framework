@@ -31,7 +31,9 @@ public class Emp {
     }
 
     // _ _ _ MODEL Methods _ _ _
-    public float computePrime(float note, float salaire){
+    @Urls(url = "prime")
+    //@IsJson()
+    public float computePrime(@Args(argName = "note")float note, @Args(argName = "salaire")float salaire){
         return note*salaire;
     }
 
