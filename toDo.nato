@@ -1,3 +1,21 @@
+-- SPRINT14
+    -- Quoi: RECUPERER L'OBJET DE RETOUR D'UNE FONCTION SOUS FORME DE JSON
+    -- comment:
+        -- creer une annotation : toJson
+        -- si une methode est annotee toJson 
+            -- recuperer l'objet de retour
+            -- le transformer en JSON
+            -- printer le JSON
+
+-- SPRINT13
+    -- quoi: AFFICHER LES DATA D'UN MV EN TANT QUE JSON
+    -- comment:
+        -- creer un attribut isJson dans MV
+        -- au niveau FS : si MV.isJson == true 
+            -- serialiser sous forme de JSON le HashMap data du MV
+            -- contentType de la reponse en JSON
+            -- l'afficher dans FS
+
 -- SPRINT 12
     -- QUOI
         -- ACCES DU MODELE AU CONTENU DE HTTPSESSION
