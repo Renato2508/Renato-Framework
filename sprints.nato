@@ -1,0 +1,48 @@
+SPRINT1
+    -- toutes les URL dirigees vers FS
+
+SPRINT2
+    -- creation de la classe Mapping
+
+SPRINT3
+    -- initialisation du HashMap de FS contenant tous les Mapping correspondant a une methode annotee Urls
+
+SPRINT4
+    -- reprise de 3
+    -- separation du FW et du projet de test
+
+SPRINT 5
+    -- separation du projet et du framework
+    -- exportation du framework en .jar vers le projet
+    -- archivage du projet en .war et copie, deploiement vers le serveur
+    --rendre ces taches d'archivage et de deploiement automatique
+
+SPRINT 5B
+    -- dispatch vers une vue
+
+SPRINT 6
+    -- passage de donnee de controleur a vue
+
+SPRINT 7
+    -- passade de donne vue vers MC(setAttributes)
+
+SPRINT 8
+    -- invocation des methodes d'action
+
+SPRINT 9
+    -- repertoire tempo lors de l'archivage du projet
+    -- upload de fichier
+
+SPRINT 10 
+    -- singletons
+
+SPRINT 11
+    -- acces reglemente aux methodes 
+
+SPRINT 12
+    -- PASSAGE DE LA session
+
+SPRINT 13 14 : retoruner des JSON
+
+SPRINT 15
+
