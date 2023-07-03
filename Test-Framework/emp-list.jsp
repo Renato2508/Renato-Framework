@@ -2,7 +2,8 @@
 
 <%
     Vector<Emp> liste = (Vector<Emp>)request.getAttribute("liste");
-    out.println("Vous avez effectue la saisie suivante:"+"<br>");
+    out.println(request.getAttribute("connectedProfile")+" Vous avez effectue la saisie suivante:"+"<br>");
+    
     for(Emp emp : liste){
         try{
             out.println("EMPLOYE: " + emp.getNom()+"<br>");
@@ -34,6 +35,11 @@
             //e6.printStackTrace();
         }
         
+        try{
+            out.println("FICHIER: "+ emp.getFile());
+        }catch(Exception e6){
+            //e6.printStackTrace();
+        }
         
         
     }

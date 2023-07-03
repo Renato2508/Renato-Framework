@@ -43,9 +43,11 @@ public class FrontServlet extends HttpServlet {
                                             // <l'annotation et le Mapping correspondant>
     String context;
     String connectedProfileKey;
+    String instanceNumberVariable;
 
     public void init() throws ServletException {
         try{
+            this.instanceNumberVariable = this.getInitParameter("instanceNumberVariable");
             this.connectedProfileKey = this.getInitParameter("connectedProfileKey");
             this.context = this.getInitParameter("context");
             String p = "";
@@ -116,8 +118,8 @@ public class FrontServlet extends HttpServlet {
                      result = methode.invoke(classe.cast(instance),args);
                     
                 } catch (Exception e1) {
-                   //out.print(e1);
-                   e1.printStackTrace();
+                   out.print(e1);
+                   //e1.printStackTrace();
                 }
                 
                 //Object result = FrontServlet.invoke(classe.cast(instance), req, methode);  
@@ -125,6 +127,7 @@ public class FrontServlet extends HttpServlet {
                 // Passage de donnees vers une vue
                 if(result instanceof ModelView == true){
                     ModelView mv =  (ModelView)result;
+                    this.invalidateSession(mv, session);
                     if(mv.getIsJson() == true){
                         String json = this.serialize(mv);
                          // Modification du Content-Type de la réponse en JSON
@@ -142,7 +145,7 @@ public class FrontServlet extends HttpServlet {
                     }
                     
                 }
-                else if (methode.getAnnotation(IsJson.class) != null ){
+                if (methode.getAnnotation(IsJson.class) != null ){
                     String json = this.serialize(result);
                     res.setContentType("application/json");
                     out.print(json);
@@ -150,6 +153,20 @@ public class FrontServlet extends HttpServlet {
             }    
         }catch( Exception e ){
             e.printStackTrace();
+        }
+        
+    }
+
+    // invalidation de session
+    public void invalidateSession(ModelView mv, HttpSession session){
+        if(mv.getIsInvalidate() == true){
+            session.invalidate();
+        }
+        String[] toInvalidate = mv.getToInvalidate();
+        if(toInvalidate != null){
+            for(String index : toInvalidate){
+                session.removeAttribute(index);
+            }
         }
         
     }
@@ -432,6 +449,7 @@ public class FrontServlet extends HttpServlet {
             if(attr.getType().getSimpleName().equalsIgnoreCase("fileupload") && contentType != null && contentType.startsWith("multipart/form-data")){
                 Part partfile = req.getPart(attrName);
                 if (partfile != null) {
+                    System.out.println("---> PARTFILE NON NULL  "+ partfile);
                     // nom du fichier passe depuis la vue
                     String fileName = partfile.getSubmittedFileName();
                     InputStream is = partfile.getInputStream();
@@ -474,31 +492,34 @@ public class FrontServlet extends HttpServlet {
     }
 
 
-    public static void resetAttributes(Object instance) {
+    public void resetAttributes(Object instance) {
         Class<?> clazz = instance.getClass();
         Field[] fields = clazz.getDeclaredFields();
         
         for (Field field : fields) {
-            field.setAccessible(true);
+            if(field.getName().compareTo(this.instanceNumberVariable) != 0){
+                field.setAccessible(true);
             
-            try {
-                Object value = null;
-                
-                if (field.getType().equals(int.class)) {
-                    value = 0;
-                } else if (field.getType().equals(double.class)) {
-                    value = 0.0;
-                } else if (field.getType().equals(float.class)) {
-                    value = 0.0f;
-                } else if (field.getType().equals(boolean.class)) {
-                    value = false;
+                try {
+                    Object value = null;
+
+                    if (field.getType().equals(int.class)) {
+                        value = 0;
+                    } else if (field.getType().equals(double.class)) {
+                        value = 0.0;
+                    } else if (field.getType().equals(float.class)) {
+                        value = 0.0f;
+                    } else if (field.getType().equals(boolean.class)) {
+                        value = false;
+                    }
+
+                    field.set(instance, value);
+                } catch (IllegalAccessException e) {
+                    // Gérer l'exception appropriée ici
+                    e.printStackTrace();
                 }
-                
-                field.set(instance, value);
-            } catch (IllegalAccessException e) {
-                // Gérer l'exception appropriée ici
-                e.printStackTrace();
             }
+            
         }
     }
     
@@ -510,7 +531,7 @@ public class FrontServlet extends HttpServlet {
             // cas d'une classe a instance unique et deja instanciee
             System.out.println("Classe :"+className+" "+"INSTANCE PRESENTE");
             Object instance = this.singles.get(className);
-            //FrontServlet.resetAttributes(instance);     //reinitialiser les attributs pour eviter lesconflits entre les valeurs
+            this.resetAttributes(instance);     //reinitialiser les attributs pour eviter lesconflits entre les valeurs
             res =  instance;
         }
         

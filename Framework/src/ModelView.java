@@ -7,6 +7,8 @@ public class ModelView{
     HashMap<String, Object> data = new HashMap<String, Object>();
     HashMap<String, Object > session = new HashMap<String, Object>();
     boolean isJson = false;
+    boolean isInvalidate = false;
+    String [] toInvalidate;
 
     public ModelView() {
     }
@@ -62,6 +64,31 @@ public class ModelView{
 
     public void setIsJson(boolean isJson) {
         this.isJson = isJson;
+    }
+
+
+    public void setJson(boolean isJson) {
+        this.isJson = isJson;
+    }
+
+
+    public boolean getIsInvalidate() {
+        return isInvalidate;
+    }
+
+
+    public void setIsInvalidate(boolean isInvalidate) {
+        this.isInvalidate = isInvalidate;
+    }
+
+
+    public String[] getToInvalidate() {
+        return toInvalidate;
+    }
+
+
+    public void setToInvalidate(String[] toInvalidate) {
+        this.toInvalidate = toInvalidate;
     }
     
 }

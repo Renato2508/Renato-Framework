@@ -14,6 +14,10 @@ set "name=TFW"
 REM chemin du .jar du framework
 set "fw=E:\S4\projets\M_Naina\Framework_2m_fetch\Renato-Framework\fw.jar"
 
+REM chemin du .jar du framework
+set "gson=E:\app\jar\gson-2.8.5.jar"
+
+
 REM chemin vers le repertoire webapps de tomcat
 set "deploy=E:\app\JSP\apache-tomcat-8.5.82\webapps"
 
@@ -30,6 +34,10 @@ echo cd
 
 REM Copie du fichier FW.jar dans le répertoire lib du projet
 copy "%fw%" "WEB-INF\lib"
+
+REM Copie du fichier gson.jar dans le répertoire lib du projet
+copy "%gson%" "WEB-INF\lib"
+
 
 REM Compilation des fichiers de src vers le dossier classes avec l'option parameters
 javac   -d WEB-INF\classes src\*.java
