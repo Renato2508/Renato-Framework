@@ -1,0 +1,484 @@
+-- PROJET DE TEST
+    -- menu pour indiquer les diverses fonctionnalites
+
+-- SPRINT 15
+    -- Quoi
+        -- suppression d'elements de la session ou de la variable de session en entier
+    
+    -- Comment
+        -- MV 
+            -- attribut boolean isInvalidate 
+            -- String[] toInvalidate
+
+        -- FS
+            -- si isInvalidate == true
+                -- invalider la session
+            
+            -- boucler sur toInvalidate()
+                -- effacer ces attributs de la variable de session
+
+-- VERIFICATIONS ET TESTS
+    -- section specifique de test pour chaque fonctionnalite
+    -- liste de toutes le fonctionnalites
+    -- .DO
+-- SPRINT14
+    -- Quoi: RECUPERER L'OBJET DE RETOUR D'UNE FONCTION SOUS FORME DE JSON
+    -- comment:
+        -- creer une annotation : toJson
+        -- si une methode est annotee toJson 
+            -- recuperer l'objet de retour
+            -- le transformer en JSON
+            -- printer le JSON
+
+-- SPRINT13
+    -- quoi: AFFICHER LES DATA D'UN MV EN TANT QUE JSON
+    -- comment:
+        -- creer un attribut isJson dans MV
+        -- au niveau FS : si MV.isJson == true 
+            -- serialiser sous forme de JSON le HashMap data du MV
+            -- contentType de la reponse en JSON
+            -- l'afficher dans FS
+
+-- SPRINT 12
+    -- QUOI
+        -- ACCES DU MODELE AU CONTENU DE HTTPSESSION
+    -- COMMENT
+        -- attribut HashMap session pour le modele
+        -- creer une annotation de methode session 
+        -- si une methode(d'action?) est annotee (session?) alimenter l'attribut session du modele (a partir de toutes les donnees de la variable de session)
+
+-- SPRINT 11
+    -- QUOI
+        -- obj: acces reglemente aux methodes d'action
+        -- passage de donnees dans les variables de session
+    
+    -- COMMENT
+        -- ajouter l'annotation de methode Auth d'attribut String([]) profile
+        -- FS: RECUP URL MAPPING --> Methode
+        -- SI ANNOTEE AUTH 
+            -- recuperer valeur de Profile de Auth
+            -- verifier si la variable de session contient ce Profile   
+                -- invocation
+            -- sinon
+                -- exception
+
+    -- CONCRETEMENT
+        -- FS
+            -- public static void authenticate(methode, session)
+        -- creer un fonction de connexion
+        -- MV
+            --  ajouter l'attribut Hashmap<String, Object > session a la classe     ModelView
+            --  ajouter la methode addSessionItem(String key, Object value)
+
+        -- FS
+            -- static setRequestAttributes(req, Mv)
+            -- static setSessionAttributes(req, Mv)
+ 
+
+-- SPRINT 10
+    -- QUOI :
+        -- unicite des instances pour economiser la memoire
+        -- permettre ou non les singleton
+        -- gerer les conflits sur les valeurs successives des attributs(pour un singleton)
+    
+    -- COMMENT
+        -- annotation pour signaler l'unicite d'une instance dans le modele
+        -- lister les classes a instance unique a l'initialisation de la FrontServlet et les mettre dans un hashmap
+        -- a l'execution si  une classe est un singleton  si la cle correspondant a son nom est dans le Hashmap
+        -- si pas encore d'instance , en creer une
+        -- travailler sur celle-ci 
+
+    -- contexte:
+        -- rectification 
+    
+    -- creation d'un attribut singles de type Hashmap<String, Object>
+    -- CONCRETEMENT
+        -- 1 JAVA creation de l'annotation de classe scop ,  d'attirut single de type boolen, par defaut false
+        
+        -- 2 LISTE DES CLASSES ANNOTEES scop  
+            -- ECRIRE UNIQUEMENT LA SIGNATURE ET L'IMPLEMENTATION DE LA FONCTION SANS RIEN AJOUTER          
+            -- Public static Hashmap<String, Object> getScopAnnotedClasses(Vector<Class<?>> classes)
+            -- parcourir classes
+            -- si la classe courante est annotee Scop et que l'attribut isSingle de l'annotation est true
+                -- recuperer le nom de la classe
+                -- inserer dans le hashmap resultat la paire(nomDeClasse, null)
+
+        -- 3-  la fonction     public static Object getInstance(Mapping map) throws Exception
+            -- recuperer l'attribut class du  Mapping map correspondant
+            -- verifier si le Hashmap singles contient la cle contenue dans class 
+            -- si oui
+                -- recuperer le contenu relatif a cette cle(nom de variable instance)
+                -- si non null 
+                    -- resetAttributes(instance)
+                    -- le retourner
+                -- sinon
+                    -- proceder a son instanciation
+            -- sinon
+                -- poursuivre le code  
+        
+        -- 4 public static void resetAttributes(Object instance)
+            -- parcourir la liste des attributs 
+            -- faire un try pour les mettre a null
+            -- pour les types primitifs mettre leurs valeur a 0, 0.0, ou false selon le cas:
+            -- prendre en compte les types suivants: 
+                -- int, double, float, boolean
+
+
+-- sprint 9 Officiel
+    -- QUOI: 
+        -- BUT: UPLOADER DES FICHIERS
+        -- passer des fichers depuis une vue ---> controleur
+    -- COMMENT
+        -- le fichier parvient au controleur sous forme de byte[] dans un FU
+        -- utilisation selon les besoins du developpeur dans ses modeles 
+        -- class FileUpload{
+            String fileName
+            String path
+            byte[] bytes
+        }
+
+
+        -- dans empForm
+            -- ajouter un input type file
+        -- dans emp
+            -- ajouter un attribut F.U.
+
+        -- frontServlet
+            -- mettre au point setAttributes
+                -- si existence d'un attribut FileUpload
+                    -- recuperer le fichier en question 
+                    -- instancier le F.U.
+                    -- setter l'attribut
+
+        -- CONCRETEMENT
+            -- classe FileUpload
+            -- les modeles qui utilisent des fichiers venant des vues utilisent la classe F.U.
+            
+            -- je passe mon fichier depuis le formulaire vers le serveur
+            -- je le recupere
+            -- j'instancie un FileUpload 
+            -- le FileUpload sera pris en compte par setAttributes
+            -- getPart permet de le recuperer
+            -- le nom est passe avec lui
+            -- le chemin reste null
+
+-- CORRECTIF :
+    -- QUOI
+        -- probleme: recuperation des nom des arguments formels
+        -- solution: annoter les arguments formels
+        -- au moment de invoke: recuperer le nom de l'annotation
+        -- faire un get sur la variable portant ce nom
+
+-- sprint 9A OK
+    -- creer un repertoire temporaire pour le traitement du projet 
+        -- UTILISER DES VARIABLES
+        -- y copier le projet
+        -- y compiler le projet
+        -- l'y transformer en .war
+        -- le deployer vers le serveur
+    
+    -- compiler le framework et livrer le .jar
+    -- ajouter le FW.jar aux variables d'environnement( pour la compilation )
+
+    -- s'occuper du projet
+        -- creation d'un repertoire temporaire
+        -- copie du projet en entier
+        -- ajouter de FW.jar au lib du projet web(pour l'execution)
+        -- compilations
+        -- transformation en .war
+        -- deploiement
+
+    -- contenu du script windows 
+        -- UTILISER DES VARIABLES POUR TOUS LES CHEMINS SPECIFIES
+        -- LEURS DECLARATIONS DE FERA AU DEBUT
+
+        -- creation du repertoire temp 
+        -- copie du projet en entier(nom de variable: project)
+        -- maintenant on travaille dans temp
+        -- // le projet est un projet web java
+        -- copier le fichier FW.jar(nom de  variable: fw) dans le repertoire lib du projet
+        -- // les sources du projet se trouvent dans un dossier src (meme niveau que WEB-INF)
+        -- compiler avec l'option parameters tous les fichiers de src vers le dossier classes 
+        -- exporter le projet en un .war
+        -- le copier dans le repertoire webapps de tomcat(nom de varibable: deploy)
+        -- supprimer le repertoire temp
+
+
+-- CORRECTIFS 13 mai 2023
+    -- CORRECTION DE setAttributes
+        -- OBJECTIF:   tous les attributs ayant une valeur specifiee dans la requete doit passer par set
+
+        -- DONNEES: instance, requete, classe, liste des methodes
+
+        -- COMMENT
+            -- principe: 
+                -- de quoi ai-je besoin(attributs)?: parcourir la liste d'attributs
+                -- je recherche ce nom d'attribut dans la liste des variables de la requete
+                -- je recherche la methode setter correspondantes
+                -- j'utilise invoke(instance, req, methode)
+
+            -- ecrire en java le code de la methode statique de signature suivante:
+                -- public static void setAttributes(Object instance, HttpServletRequest req, Class<?> classe, Method[] methods) throws Exception
+            -- algorithme 
+                -- recuperer la liste attrList des attributs de la classe classe
+                -- parcourir la liste d'attributs
+                -- a chaque attribut attr, recuperer la valeur argVal de la variable de la requete portant le meme nom que A
+                -- si argVal est non nul
+                    -- rechercher dans la liste des methodes la methode setter de nom "set"+"nomDeLattribut" (ne pas prendre compte de la casse)
+                    -- invoquer la methode statique de ma classe FrontServlet de signature:
+                    public static Object invoke(Object instance, HttpServletRequest req, Method methode) throws Exception
+
+
+    --- activer setAttributes
+    -- creer une fonction qui necessite d'autres noms d'arguments
+
+    -- problematiques
+        -- ARGUMENT FORMEL A VALEUR NULLE : SOLVED
+            -- objectif: 
+                -- tous les arguments de la fonction ont une valeur 
+                -- ceux qui n'en ont pas seront initialises a NULL ou 0
+
+            -- cas 1: presence dans la requete mais aucune valeur
+                -- getValues retournera un tableau avec String vide
+            -- cas 2: absence dans la requete
+                -- getValues retourne NULL
+
+            
+            -- changements a faire au niveau de la methode cast
+                -- valueOf(null) ne fonctionne pas
+
+-- CORRECTIFS
+    -- setAttributes: revoir l'algorithme
+    -- traitements des arguments a valeur nulle
+        -- si valeur d'un argument non null
+            -- normal
+            -- recup
+            -- invoke
+            -- SI null
+                -- pointer
+                    -- direct ajouter a l'invocation(pas de cast)
+                -- si type primitifs
+                    -- ajouter une valeur 0
+            
+-- SPRINT 8 
+    -- invoquer la methode correspondant a l'attribut URL de l'annotation URLS
+    -- les arguments sont les parametres de la requete
+    -- contrainte: faire la conversion vers chaque type d'argument attendu par la methode
+
+    -- FrontServlet 
+        -- Methode d'invocation de Methode
+            --  invoke(Instance, Requete, Classe, Methodes, Mapping)
+                -- liste des arguments de la fonction
+                -- liste des parametres de la Requete
+                -- (chercher le parametre de meme nom que l'argument)
+                -- faire un cast
+                -- ajouter le parametre castE dans la liste des arguments
+                -- methode.invoke(instance, arguments)
+
+        -- Methode cast(valeur, type_cible)
+            -- essayer avec valueOf(valeur)
+            -- types primitifs(int, double, float, boolean)
+                -- IF
+            -- big Decimal et Integer
+
+
+
+
+
+
+-- SPRINT 7 CORRECTIF 2 
+    -- types prinmitifs
+        -- int
+        -- float
+        -- double
+
+        BigDecimal
+        BigInteger
+
+-- SPRINT 7 CORRECTIF
+    -- ne pas obliger le developpeur a utiliser des setters
+    -- avec des String comme argument
+    -- gestion des types
+        -- caster l'argument vers le type d'argument de la fonction 
+        -- types:
+            -- primitifs
+            generer un tableau statique java contenant des instance de type  Classe des classes suivantes 
+                -- Integer
+                -- String
+                -- Double
+                -- Date(sql)
+                -- Float
+                -- Long
+                -- BigDecimal
+                -- BigInteger
+                -- Char
+
+                -- obtenir la bonne instance pour invoke
+
+            -- Iterables
+                -- Vector
+                -- ArrayList
+                -- 
+
+-- SPRINT 7
+    -- BUT: PASSAGE DE DONNEES VUE VERS CONTROLEUR OU MODELE
+
+    -- COMMENT:
+        -- VUE
+            -- creer un formulaire
+            -- Nom des variables =  nom des Attribut du modele cible
+            -- action: url dans l'annotation de methode du Modele cible
+
+        -- FRONTSERVLET
+            -- recuperer l'URL de l'annotation
+            -- instancier un objet du Modele Concerne
+            -- iterer sur les parametres de la requete
+                -- setter les attributs de l'instance
+            -- invocation de methode
+            -- si MV : redirection
+
+        -- MODELE 
+            -- une fonction quelconque qui fait qqch 
+
+
+
+-- SPRINT 6
+    -- BUT: PASSAGE DE DONNEES DE CONTROLEUR VERS UNE VUE
+    -- COMMENT
+        -- MODELVIEW
+            --  ajouter attribut data(HashMap<String, Object>)
+            -- ajouter methode addItem(String, Object) pour inserer une nouvelle paire dans data
+        
+        -- FRONTSERVLET
+            -- recuperer le ModelView
+            -- recuperer le data
+            -- iterer data
+                -- ajouter chaque element(cle valeur de data) en tant que paire cle valeur dans la requete
+        
+        -- EMP
+            -- generer une liste d'elements 
+            -- ajouter la liste au data 
+        
+        -- EMPlist.JSP
+            -- recuperer la liste 
+            -- iterer et afficher son contenu 
+
+-- SPRINT 5 CORRECTIF
+    -- Modelview a generer au niveau model ou controleur du projet(ex EMP)
+    -- recuperer le ModelView au niveau FrontServlet en invoquant la methode concernee
+
+    -- COMMENT
+        -- recuperation URL au niveau FrontServlet
+        -- recuperation du Mapping correspondant(si l'annotation donnee est presente)
+        -- recuperer le ModelView au niveau FrontServlet
+            -- invoquer la methode concernee au niveau utils
+    
+            -- instanciation du ModelView au niveau model
+            -- le retourner
+
+-- SPRINT 5 B
+    -- QUOI / COMMENT
+        -- creer la classe ModelView(String view)
+        -- recuperation slug
+        -- test de presence dans la liste des Mappings
+        -- si non
+            -- lever une exception
+        -- si oui
+            -- recuperer le mapping
+            -- instancier un objet appartenant a la classe
+            -- invoquer la methode
+                -- la methode instancie un ModelView(String View)
+                -- le retourne
+            -- caster
+            -- rediriger par dispatch vers la vue 
+
+-- SPRINT 5 A
+    -- QUOI
+        -- separation du projet et du framework
+        -- exportation du framework en .jar vers le projet
+        -- archivage du projet en .war et copie, deploiement vers le serveur
+        --rendre ces taches d'archivage et de deploiement automatique
+
+    -- COMMENT 
+        -- BUILD framework
+            -- repertoire build 
+            -- compilation
+                -- script de compilation: build.sh
+                    -- compilation de tout ce qui est utile
+            -- archivage jar
+            -- copie dans le repertoire lib du projet de test
+                -- creer le lib avant de le faire
+        
+        --  BUILD projet de test
+            -- compilation des classes du projet
+            -- creation du war
+            -- copie du war vers le serveur
+
+
+-- SPRINT 4
+    -- QUOI
+        -- structurer le repository 
+            -- Framework/src/...
+            -- test-Framework/src...
+        -- push sprint3
+        -- pull request
+        -- sprint4
+        -- cloner dans tomcat
+        -- retructuration
+
+-- affichage du contenu du hashmap a l'ecran
+    -- parcourir
+    -- afficher a l'ecran 
+        --  ANNOTATION 
+        --  classe 
+        -- methode
+
+-- remplissage de HashMap
+    -- lister toutes les classes OK
+    -- recuperer toutes les methodes annotees Urls 
+        -- le nom de methode
+        -- l'annotation
+        -- la classe
+
+        *-- a partir d'une liste de classes
+            -- in : la liste de classes
+            -- out: un HashMap de Mapping
+                -- parcourir la  liste des classes
+                -- lister les methodes de la classe
+                    -- parcourir la liste methodes
+                    -- si annotee Urls: 
+                        -- recuperer l'annotation
+                        -- recuperer le nom de methode
+                        -- recuperer le nom de classe
+                        -- instancier le mapping
+                        -- ajouter au hashmap final
+
+
+
+
+                        
+-- creer repo
+    -- creer branche
+    -- cloner branche
+-- sprint 1:
+    -- frontServlet
+    -- web.xml
+-- sprint 2:
+    -- Mapping
+-- sprint 3 : recherche d'une fonction par une url
+
+    -- compilations vers le serveur E:/app/JSP/apache-tomcat-8.5.82/webapps/framework/WEB-INF/classes
+    -- utils:
+        -- fonction de recuperation d'une methode annotee
+    -- frontServlet: 
+        -- init: liste de toutes les classes dans un package
+            -- remplissage de HashMap
+        -- final: 
+            -- recup url
+            -- decouper url
+            -- rechercher la fonction ayant cette annotation et la classe
+            -- instancier un Mapping a partir de la
+            -- et afficher le nom de la fonction
+                -- toutes les methodes annotees
+                    -- parcourir la liste des classes
+                    -- recuperer les methodes annotees Urls par classe

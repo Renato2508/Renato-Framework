@@ -20,15 +20,21 @@
 
       <init-param>
         <param-name>connectedProfileKey</param-name>
-        <param-value>connectedProfileKey</param-value>
-        <description>profil connecte</description>
+        <param-value>connectedProfile</param-value>
+        <description>nombre d'instances d'une classe</description>
       </init-param>
 
+
+      <init-param>
+        <param-name>instanceNumberVariable</param-name>
+        <param-value>appels</param-value>
+        <description>profil connecte</description>
+      </init-param>
     </servlet>
     
     <servlet-mapping>
         <servlet-name>FrontServlet</servlet-name>
-        <url-pattern>/</url-pattern>
+        <url-pattern>*.do</url-pattern>
     </servlet-mapping>
     
     
