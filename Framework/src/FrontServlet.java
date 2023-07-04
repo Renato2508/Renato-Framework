@@ -114,9 +114,9 @@ public class FrontServlet extends HttpServlet {
                 try {
                     this.authenticate(methode, session);
                     this.needSession(methode,instance, classe, session);
-                     args = FrontServlet.generateArgs(req, methode);
-                     result = methode.invoke(classe.cast(instance),args);
-                    
+                    args = FrontServlet.generateArgs(req, methode);
+                    result = methode.invoke(classe.cast(instance),args);
+                    this.setSessionAttributes( methode, instance, classe, session);
                 } catch (Exception e1) {
                    out.print(e1);
                    //e1.printStackTrace();
@@ -128,6 +128,7 @@ public class FrontServlet extends HttpServlet {
                 if(result instanceof ModelView == true){
                     ModelView mv =  (ModelView)result;
                     this.invalidateSession(mv, session);
+                    this.removeSessionAttributes(mv, session);
                     if(mv.getIsJson() == true){
                         String json = this.serialize(mv);
                          // Modification du Content-Type de la réponse en JSON
@@ -157,19 +158,43 @@ public class FrontServlet extends HttpServlet {
         
     }
 
-    // invalidation de session
-    public void invalidateSession(ModelView mv, HttpSession session){
-        if(mv.getIsInvalidate() == true){
-            session.invalidate();
-        }
+    // suppression d'attributs de session
+    public void removeSessionAttributes(ModelView mv, HttpSession session){
         String[] toInvalidate = mv.getToInvalidate();
         if(toInvalidate != null){
             for(String index : toInvalidate){
                 session.removeAttribute(index);
             }
         }
+    }
+
+    // invalidation de session
+    public void invalidateSession(ModelView mv, HttpSession session){
+        if(mv.getIsInvalidate() == true){
+            session.invalidate();
+        }                
+    }
+
+    // transfert des donnes dans la session apres modification par une methode
+    public void setSessionAttributes(Method methode, Object instance, Class classe, HttpSession session ){
+        System.out.println("--> Setting session Attributes...");
+        if(methode.getAnnotation(Session.class)!= null){
+            try {
+                HashMap<String, Object> sessionMap = (HashMap<String, Object>)classe.getDeclaredMethod("getSession").invoke(instance);
+
+                for(Map.Entry<String, Object> entree : sessionMap.entrySet()){
+                    System.out.println("Attribute: "+entree.getKey()+" Value:"+entree.getValue());
+                    session.setAttribute(entree.getKey(), entree.getValue());
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
         
     }
+    
+
 
     // serialisation d'un Objet sous forme de JSON
     public String serialize(Object mv){

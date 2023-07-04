@@ -25,7 +25,7 @@ public class Emp {
     
     public Emp(){
         Emp.appels ++;
-        //System.out.println("---> INSTANCES DE EMP: "+Emp.appels);
+        System.out.println("---> INSTANCES DE EMP: "+Emp.appels);
     }
 
     // _ _ _ MODEL Methods _ _ _
@@ -135,6 +135,7 @@ public class Emp {
         //System.out.println("Date embauche: "+ this.getEmbauche().toString());
 
         mv.setView("emp-list.jsp");
+        this.session.put("rq", "NEANT");
         //System.out.println("INSTANCES DE EMP: "+Emp.appels);
         return mv;
     }
