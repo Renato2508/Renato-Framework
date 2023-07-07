@@ -41,6 +41,7 @@
             //e6.printStackTrace();
         }
         
+        out.println("\nREMARQUES: "+session.getAttribute("rq"));
         
     }
 %>

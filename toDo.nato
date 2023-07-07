@@ -1,3 +1,9 @@
+-- CORRECTIF SESSION
+    -- quand annote needSession
+    -- passer la session
+    -- needSession OK
+    -- reconfigurer la session 
+
 -- PROJET DE TEST
     -- menu pour indiquer les diverses fonctionnalites
 
